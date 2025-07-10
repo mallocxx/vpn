@@ -51,40 +51,80 @@ MainWindow::MainWindow(QWidget *parent)
                                    "border: none;"
                                    "}");
 
-
-
-
     layout->addWidget(btnToggleVPN_UK);
     layout->addWidget(btnToggleVPN_FR);
     layout->addWidget(btnToggleVPN_JP);
 
     process = new QProcess(this);
 
-    connect(btnToggleVPN_UK, &QPushButton::clicked, this, [=]() { toggleVPN("uk3"); });
-    connect(btnToggleVPN_FR, &QPushButton::clicked, this, [=]() { toggleVPN("fr3"); });
-    connect(btnToggleVPN_JP, &QPushButton::clicked, this, [=]() { toggleVPN("jp3"); });
+    connect(btnToggleVPN_UK, &QPushButton::clicked, this, [=]()
+            { toggleVPN("uk3"); });
+    connect(btnToggleVPN_FR, &QPushButton::clicked, this, [=]()
+            { toggleVPN("fr3"); });
+    connect(btnToggleVPN_JP, &QPushButton::clicked, this, [=]()
+            { toggleVPN("jp3"); });
 
-    connect(process, &QProcess::readyReadStandardOutput, [=]() {
-        qDebug() << process->readAllStandardOutput();
-    });
-
-    connect(process, &QProcess::readyReadStandardError, [=]() {
-        qDebug() << process->readAllStandardError();
-    });
+    connect(process, &QProcess::readyReadStandardOutput, [=]()
+            { qDebug() << process->readAllStandardOutput(); });
+    connect(process, &QProcess::readyReadStandardError, [=]()
+            { qDebug() << process->readAllStandardError(); });
 
     connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            [=](int exitCode, QProcess::ExitStatus status){
-                if (exitCode == 0) {
+            [=](int exitCode, QProcess::ExitStatus status)
+            {
+                if (exitCode == 0)
+                {
                     QMessageBox::information(this, "WireGuard", "VPN успешно подключен.");
-                } else {
+                }
+                else
+                {
                     QMessageBox::critical(this, "WireGuard", "Ошибка при подключении VPN.");
+
+                    // В случае ошибки, меняем кнопку обратно на серый цвет и сбрасываем состояние
+                    if (vpnUKEnabled)
+                    {
+                        vpnUKEnabled = false;
+                        btnToggleVPN_UK->setStyleSheet("QPushButton {"
+                                                       "font-size: 18px;"
+                                                       "padding: 10px 20px;"
+                                                       "border-radius: 15px;"
+                                                       "background-color: #9E9E9E;" // Серый
+                                                       "color: white;"
+                                                       "border: none;"
+                                                       "}");
+                    }
+                    if (vpnFREnabled)
+                    {
+                        vpnFREnabled = false;
+                        btnToggleVPN_FR->setStyleSheet("QPushButton {"
+                                                       "font-size: 18px;"
+                                                       "padding: 10px 20px;"
+                                                       "border-radius: 15px;"
+                                                       "background-color: #9E9E9E;" // Серый
+                                                       "color: white;"
+                                                       "border: none;"
+                                                       "}");
+                    }
+                    if (vpnJPEnabled)
+                    {
+                        vpnJPEnabled = false;
+                        btnToggleVPN_JP->setStyleSheet("QPushButton {"
+                                                       "font-size: 18px;"
+                                                       "padding: 10px 20px;"
+                                                       "border-radius: 15px;"
+                                                       "background-color: #9E9E9E;" // Серый
+                                                       "color: white;"
+                                                       "border: none;"
+                                                       "}");
+                    }
                 }
             });
 }
 
 MainWindow::~MainWindow() {}
 
-void MainWindow::toggleVPN(const QString &vpnName) {
+void MainWindow::toggleVPN(const QString &vpnName)
+{
     QString program = "sudo";
     QStringList arguments;
 
@@ -92,7 +132,7 @@ void MainWindow::toggleVPN(const QString &vpnName) {
                        "font-size: 18px;"
                        "padding: 10px 20px;"
                        "border-radius: 15px;"
-                       "background-color: #9E9E9E;"
+                       "background-color: #9E9E9E;" // Серый
                        "color: white;"
                        "border: none;"
                        "}";
@@ -101,42 +141,56 @@ void MainWindow::toggleVPN(const QString &vpnName) {
                       "font-size: 18px;"
                       "padding: 10px 20px;"
                       "border-radius: 15px;"
-                      "background-color: #2196F3;"
+                      "background-color: #2196F3;" // Синий
                       "color: white;"
                       "border: none;"
                       "}";
 
-    if (vpnName == "uk3" && !vpnFREnabled && !vpnJPEnabled) {
-        if (vpnUKEnabled) {
+    if (vpnName == "uk3" && !vpnFREnabled && !vpnJPEnabled)
+    {
+        if (vpnUKEnabled)
+        {
             arguments << "wg-quick" << "down" << "wireguard-uk3";
             vpnUKEnabled = false;
             btnToggleVPN_UK->setText("United Kingdom");
             btnToggleVPN_UK->setStyleSheet(offStyle);
-        } else {
+        }
+        else
+        {
             arguments << "wg-quick" << "up" << "wireguard-uk3";
             vpnUKEnabled = true;
             btnToggleVPN_UK->setText("United Kingdom");
             btnToggleVPN_UK->setStyleSheet(onStyle);
         }
-    } else if (vpnName == "fr3" && !vpnUKEnabled && !vpnJPEnabled) {
-        if (vpnFREnabled) {
+    }
+    else if (vpnName == "fr3" && !vpnUKEnabled && !vpnJPEnabled)
+    {
+        if (vpnFREnabled)
+        {
             arguments << "wg-quick" << "down" << "wireguard-fr3";
             vpnFREnabled = false;
             btnToggleVPN_FR->setText("France");
             btnToggleVPN_FR->setStyleSheet(offStyle);
-        } else {
+        }
+        else
+        {
             arguments << "wg-quick" << "up" << "wireguard-fr3";
             vpnFREnabled = true;
             btnToggleVPN_FR->setText("France");
             btnToggleVPN_FR->setStyleSheet(onStyle);
         }
-    } else if (vpnName == "jp3" && !vpnUKEnabled && !vpnFREnabled) {
-        if (vpnJPEnabled) {
+    }
+    else if (vpnName == "jp3" && !vpnUKEnabled && !vpnFREnabled)
+    {
+        if (vpnJPEnabled)
+        {
             arguments << "wg-quick" << "down" << "wireguard-jp3";
             vpnJPEnabled = false;
             btnToggleVPN_JP->setText("Japan");
             btnToggleVPN_JP->setStyleSheet(offStyle);
-        } else {
+        }
+        else
+        {
             arguments << "wg-quick" << "up" << "wireguard-jp3";
             vpnJPEnabled = true;
             btnToggleVPN_JP->setText("Japan");
